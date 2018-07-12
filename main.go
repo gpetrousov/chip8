@@ -6,7 +6,7 @@ func main() {
 
 	var (
 		// Memory
-		// memory [4096]uint8
+		memory [4096]uint8
 		// Registers
 		vReg [16]uint8
 		// Address Register
@@ -33,7 +33,9 @@ func main() {
 	// MAin loop
 	for {
 		// Fetch
+		opcode := fetchOpcode(memory, pc)
 		// Decode
+		decodeOpcode(opcode, stack, pc, sp, vReg, iReg, delayTimer, soundTimer)
 		// Execute
 		// Store
 		// Update timers
@@ -43,12 +45,12 @@ func main() {
 }
 
 // Take memory and PC and return next opcode to execute
-func fetchOpcode(memory []byte, pc uint16) uint16 {
+func fetchOpcode(memory [4096]uint8, pc uint16) uint16 {
 	opcode := uint16(memory[pc]<<8 | memory[pc+1])
 	return opcode
 }
 
-func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg []uint8, iReg uint16, delayTimer uint8, soundTimer uint8) {
+func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [16]uint8, iReg uint16, delayTimer uint8, soundTimer uint8) {
 
 	// Zero opcodes
 	switch opcode {
@@ -121,6 +123,8 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg []
 		iReg = opcode & 0x0FFF
 	case 0xB000:
 		fmt.Println("Jumps to the address NNN plus V0")
+		pc = opcode & 0x0FFF
+		pc += uint16(vReg[0])
 	case 0xC000:
 		fmt.Println("Sets VX to the result of a bitwise and operation on a random number (Typically: 0 to 255) and NN")
 	case 0xD000:
@@ -166,7 +170,7 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg []
 			fmt.Println("Fills V0 to VX (including VX) with values from memory starting at address I")
 		}
 	default:
-		fmt.Println("Unknown opcode: %v", opcode)
+		fmt.Println("Unknown opcode:", opcode)
 	}
 }
 
