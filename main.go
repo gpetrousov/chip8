@@ -7,18 +7,18 @@ func main() {
 	var (
 		// Memory
 		// memory [4096]uint8
-		// // Registers
-		// vReg [16]byte //uint8
-		// // Address Register
-		// iReg uint16
-		// // Stack
-		// stack [16]uint16
-		// // Stack pointer
-		// sp uint16
-		// // Delay timer
-		// delayTimer uint8
-		// // Sound timer
-		// soundTimer uint8
+		// Registers
+		vReg [16]uint8
+		// Address Register
+		iReg uint16
+		// Stack
+		stack [16]uint16
+		// Stack pointer
+		sp uint16
+		// Delay timer
+		delayTimer uint8
+		// Sound timer
+		soundTimer uint8
 		// // Opcode (contains the actual code)
 		// opcode uint16
 		// Program Counter (index to program in ROM)
@@ -48,12 +48,13 @@ func fetchOpcode(memory []byte, pc uint16) uint16 {
 	return opcode
 }
 
-func decodeOpcode(opcode uint16) {
+func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg []uint8, iReg uint16, delayTimer uint8, soundTimer uint8) {
 
 	// Zero opcodes
 	switch opcode {
 	case 0x00E0:
 		fmt.Println("Clear screen")
+		clearScreen()
 	case 0x00EE:
 		fmt.Println("Return from a subroutine")
 	}
@@ -62,8 +63,12 @@ func decodeOpcode(opcode uint16) {
 	switch opcode & 0xF000 {
 	case 0x1000:
 		fmt.Println("Jumps to address NNN")
+		pc = opcode & 0x0FFF
 	case 0x2000:
 		fmt.Println("Calls subroutine at NNN")
+		stack[sp] = pc
+		sp += 1
+		pc = opcode & 0x0FFF
 	case 0x3000:
 		fmt.Println("Skips the next instruction if VX equals NN. (Usually the next instruction is a jump to skip a code block")
 	case 0x4000:
@@ -72,20 +77,30 @@ func decodeOpcode(opcode uint16) {
 		fmt.Println("Skips the next instruction if VX equals VY. (Usually the next instruction is a jump to skip a code block")
 	case 0x6000:
 		fmt.Println("Sets VX to NN")
+		registerIndex := opcode & 0x0F00
+		registerValue := opcode & 0x00FF
+		vReg[registerIndex] = uint8(registerValue)
 	case 0x7000:
 		fmt.Println("Adds NN to VX. (Carry flag is not changed)")
+		registerIndex := opcode & 0x0F00
+		addValue := opcode & 0x00FF
+		vReg[registerIndex] += uint8(addValue)
 
 	// 8 Opcodes
 	case 0x8000:
 		switch opcode & 0x000F {
 		case 0x0000:
 			fmt.Println("Sets VX to the value of VY")
+			vReg[opcode&0x0F00] = vReg[opcode&0x00F0]
 		case 0x0001:
 			fmt.Println("Sets VX to VX or VY. (Bitwise OR operation)")
+			vReg[opcode&0x0F00] = vReg[opcode&0x0F00] | vReg[opcode&0x00F0]
 		case 0x0002:
 			fmt.Println("Sets VX to VX and VY. (Bitwise AND operation)")
+			vReg[opcode&0x0F00] = vReg[opcode&0x0F00] & vReg[opcode&0x00F0]
 		case 0x0003:
 			fmt.Println("Sets VX to VX xor VY.")
+			vReg[opcode&0x0F00] = vReg[opcode&0x0F00] ^ vReg[opcode&0x00F0]
 		case 0x0004:
 			fmt.Println("Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.")
 		case 0x0005:
@@ -103,6 +118,7 @@ func decodeOpcode(opcode uint16) {
 		fmt.Println("Skips the next instruction if VX doesn't equal VY. (Usually the next instruction is a jump to skip a code block)")
 	case 0xA000:
 		fmt.Println("Sets I to the address NNN")
+		iReg = opcode & 0x0FFF
 	case 0xB000:
 		fmt.Println("Jumps to the address NNN plus V0")
 	case 0xC000:
@@ -124,14 +140,22 @@ func decodeOpcode(opcode uint16) {
 		switch opcode & 0x00FF {
 		case 0x0007:
 			fmt.Println("Sets VX to the value of the delay timer")
+			registerIndex := opcode & 0x0F00
+			vReg[registerIndex] = delayTimer
 		case 0x000A:
 			fmt.Println("A key press is awaited, and then stored in VX. (Blocking Operation. All instruction halted until next key event)")
 		case 0x0015:
 			fmt.Println("Sets the delay timer to VX")
+			registerIndex := opcode & 0x0F00
+			delayTimer = vReg[registerIndex]
 		case 0x0018:
-			fmt.Println("Sets the sound timer to VX.")
+			fmt.Println("Sets the sound timer to VX")
+			registerIndex := opcode & 0x0F00
+			soundTimer = vReg[registerIndex]
 		case 0x001E:
 			fmt.Println("Adds VX to I.[3]")
+			registerIndex := opcode & 0x0F00
+			iReg += uint16(vReg[registerIndex])
 		case 0x0029:
 			fmt.Println("Sets I to the location of the sprite for the character in VX. Characters 0-F (in hexadecimal) are represented by a 4x5 font")
 		case 0x0033:
