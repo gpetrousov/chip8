@@ -218,3 +218,16 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 func clearScreen() {
 
 }
+
+// Update timers
+func updateTimers(soundTimer uint8, delayTimer uint8) {
+	if delayTimer > 0 {
+		delayTimer -= 1
+	}
+	if soundTimer > 0 {
+		if soundTimer == 1 {
+			println("BEEP!")
+		}
+	}
+	soundTimer -= 1
+}
