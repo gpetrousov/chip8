@@ -93,26 +93,50 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 		switch opcode & 0x000F {
 		case 0x0000:
 			fmt.Println("Sets VX to the value of VY")
-			vReg[opcode&0x0F00] = vReg[opcode&0x00F0]
+			vReg[(opcode&0x0F00)>>8] = vReg[(opcode&0x00F0)>>4]
 		case 0x0001:
 			fmt.Println("Sets VX to VX or VY. (Bitwise OR operation)")
-			vReg[opcode&0x0F00] = vReg[opcode&0x0F00] | vReg[opcode&0x00F0]
+			vReg[(opcode&0x0F00)>>8] = vReg[(opcode&0x0F00)>>8] | vReg[(opcode&0x00F0)>>4]
 		case 0x0002:
 			fmt.Println("Sets VX to VX and VY. (Bitwise AND operation)")
-			vReg[opcode&0x0F00] = vReg[opcode&0x0F00] & vReg[opcode&0x00F0]
+			vReg[(opcode&0x0F00)>>8] = vReg[(opcode&0x0F00)>>8] & vReg[(opcode&0x00F0)>>4]
 		case 0x0003:
 			fmt.Println("Sets VX to VX xor VY.")
-			vReg[opcode&0x0F00] = vReg[opcode&0x0F00] ^ vReg[opcode&0x00F0]
+			vReg[(opcode&0x0F00)>>8] = vReg[(opcode&0x0F00)>>8] ^ vReg[(opcode&0x00F0)>>4]
 		case 0x0004:
-			fmt.Println("Adds VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't.")
+			fmt.Println("Adds VX += VY. VF is set to 1 when there's a carry, and to 0 when there isn't.")
+			if vReg[(opcode&0x00F0)>>4] > (0xFF - vReg[(opcode&0x0F00)>>8]) {
+				vReg[0xF] = 1 //carry
+			} else {
+				vReg[0xF] = 0
+				vReg[(opcode&0x0F00)>>8] += vReg[(opcode&0x00F0)>>4]
+			}
+			pc += 2
 		case 0x0005:
-			fmt.Println("VY is subtracted from VX. VF is set to 0 when there's a borrow, and 1 when there isn't.")
+			fmt.Println("VX -= VY. VF is set to 0 when there's a borrow, and 1 when there isn't.")
+			if vReg[(opcode&0x00F0)>>4] > vReg[(opcode&0x0F00)>>8] {
+				vReg[0xF] = 0 //borrow
+			} else {
+				vReg[0xF] = 1
+				vReg[(opcode&0x0F00)>>8] -= vReg[(opcode&0x00F0)>>4]
+			}
+			pc += 2
 		case 0x0006:
 			fmt.Println("Shifts VY right by one and stores the result to VX (VY remains unchanged). VF is set to the value of the least significant bit of VY before the shift.[2]")
+			vReg[(opcode&0x0F00)>>4] = vReg[(opcode&0x00F0)>>4] >> 1
+			vReg[0xF] = vReg[(opcode&0x0F00)>>8] & 1 // Capture LSB of Vy
 		case 0x0007:
 			fmt.Println("Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't. ")
+			if vReg[(opcode&0x0F00)>>4] > (0xFF - vReg[(opcode&0x00F0)>>4]) {
+				vReg[0xF] = 0 //borrow
+			} else {
+				vReg[(opcode&0x00F0)>>4] -= vReg[(opcode&0x0F00)>>8]
+				vReg[0xF] = 1
+			}
 		case 0x000E:
 			fmt.Println("Shifts VY left by one and copies the result to VX. VF is set to the value of the most significant bit of VY before the shift")
+			vReg[(opcode&0x0F00)>>4] = vReg[(opcode&0x00F0)>>4] << 1
+			vReg[0xF] = vReg[(opcode&0x00F0)>>4] & 128 // Capture MSB of Vy
 		}
 
 		// 9-D opcodes
