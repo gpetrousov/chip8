@@ -59,6 +59,8 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 		clearScreen()
 	case 0x00EE:
 		fmt.Println("Return from a subroutine")
+		pc = stack[sp]
+		sp -= 1
 	}
 
 	// 1-7 opcodes
@@ -73,20 +75,27 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 		pc = opcode & 0x0FFF
 	case 0x3000:
 		fmt.Println("Skips the next instruction if VX equals NN. (Usually the next instruction is a jump to skip a code block")
+		if vReg[(opcode&0x0F00)>>8] == uint8(opcode&0x00FF) {
+			pc += 4
+		}
 	case 0x4000:
 		fmt.Println("Skips the next instruction if VX doesn't equal NN. (Usually the next instruction is a jump to skip a code block")
+		if vReg[(opcode&0x0F00)>>8] != uint8(opcode&0x00FF) {
+			pc += 4
+		}
 	case 0x5000:
 		fmt.Println("Skips the next instruction if VX equals VY. (Usually the next instruction is a jump to skip a code block")
+		if vReg[(opcode&0x0F00)>>8] == vReg[(opcode&0x00F0)>>4] {
+			pc += 4
+		}
 	case 0x6000:
 		fmt.Println("Sets VX to NN")
-		registerIndex := opcode & 0x0F00
-		registerValue := opcode & 0x00FF
-		vReg[registerIndex] = uint8(registerValue)
+		vReg[(opcode&0xF00)>>8] = uint8(opcode & 0x00FF)
+		pc += 2
 	case 0x7000:
-		fmt.Println("Adds NN to VX. (Carry flag is not changed)")
-		registerIndex := opcode & 0x0F00
-		addValue := opcode & 0x00FF
-		vReg[registerIndex] += uint8(addValue)
+		fmt.Println("Adds NN to VX.")
+		vReg[(opcode&0x0F00)>>8] += uint8(opcode & 0x00FF)
+		pc += 2
 
 	// 8 Opcodes
 	case 0x8000:
@@ -142,6 +151,10 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 		// 9-D opcodes
 	case 0x9000:
 		fmt.Println("Skips the next instruction if VX doesn't equal VY. (Usually the next instruction is a jump to skip a code block)")
+		if vReg[(opcode&0x0F00)>>8] != vReg[(opcode&0x00F0)>>4] {
+			pc += 4
+		}
+
 	case 0xA000:
 		fmt.Println("Sets I to the address NNN")
 		iReg = opcode & 0x0FFF
