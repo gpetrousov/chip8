@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math/rand"
+	"time"
+)
 
 func main() {
 
@@ -160,10 +164,11 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 		iReg = opcode & 0x0FFF
 	case 0xB000:
 		fmt.Println("Jumps to the address NNN plus V0")
-		pc = opcode & 0x0FFF
-		pc += uint16(vReg[0])
+		pc = (opcode & 0x0FFF) + uint16(vReg[0x0])
 	case 0xC000:
-		fmt.Println("Sets VX to the result of a bitwise and operation on a random number (Typically: 0 to 255) and NN")
+		fmt.Println("Sets VX to the result of a bitwise AND operation on a random number (Typically: 0 to 255) and NN")
+		rand.Seed(time.Now().UnixNano())
+		vReg[(opcode&0x0F00)>>8] = uint8(uint16(rand.Intn(256)) & ((opcode & 0x00FF) >> 8))
 	case 0xD000:
 		fmt.Println("Draws a sprite at coordinate (VX, VY)...")
 
@@ -181,22 +186,21 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 		switch opcode & 0x00FF {
 		case 0x0007:
 			fmt.Println("Sets VX to the value of the delay timer")
-			registerIndex := opcode & 0x0F00
-			vReg[registerIndex] = delayTimer
+			vReg[(opcode&0x0F00)>>8] = delayTimer
 		case 0x000A:
 			fmt.Println("A key press is awaited, and then stored in VX. (Blocking Operation. All instruction halted until next key event)")
 		case 0x0015:
 			fmt.Println("Sets the delay timer to VX")
-			registerIndex := opcode & 0x0F00
-			delayTimer = vReg[registerIndex]
+			delayTimer = vReg[(opcode&0x0F00)>>8]
 		case 0x0018:
 			fmt.Println("Sets the sound timer to VX")
-			registerIndex := opcode & 0x0F00
-			soundTimer = vReg[registerIndex]
+			soundTimer = vReg[(opcode&0x0F00)>>8]
 		case 0x001E:
-			fmt.Println("Adds VX to I.[3]")
-			registerIndex := opcode & 0x0F00
-			iReg += uint16(vReg[registerIndex])
+			fmt.Println("Adds VX to I.")
+			iReg += uint16(vReg[(opcode&0x0F00)>>8])
+			if iReg+uint16(vReg[(opcode&0x0F00)>>8]) > 255 {
+				vReg[0xF] = 1 // Overflow
+			}
 		case 0x0029:
 			fmt.Println("Sets I to the location of the sprite for the character in VX. Characters 0-F (in hexadecimal) are represented by a 4x5 font")
 		case 0x0033:
