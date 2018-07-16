@@ -281,6 +281,9 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 
 		case 0x0055:
 			fmt.Println("Stores V0 to VX (including VX) in memory starting at address I. The offset from I is increased by 1 for each value written, but I itself is left unmodified")
+			for i := uint16(0); i < ((opcode & 0x0F00) >> 8); i += 1 {
+				memory[iReg+i] = vReg[i]
+			}
 		case 0x0065:
 			fmt.Println("Fills V0 to VX (including VX) with values from memory starting at address I")
 		}
