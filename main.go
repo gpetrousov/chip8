@@ -109,16 +109,22 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 		fmt.Println("Skips the next instruction if VX equals NN. (Usually the next instruction is a jump to skip a code block")
 		if vReg[(opcode&0x0F00)>>8] == uint8(opcode&0x00FF) {
 			pc += 4
+		} else {
+			pc += 2
 		}
 	case 0x4000:
 		fmt.Println("Skips the next instruction if VX doesn't equal NN. (Usually the next instruction is a jump to skip a code block")
 		if vReg[(opcode&0x0F00)>>8] != uint8(opcode&0x00FF) {
 			pc += 4
+		} else {
+			pc += 2
 		}
 	case 0x5000:
 		fmt.Println("Skips the next instruction if VX equals VY. (Usually the next instruction is a jump to skip a code block")
 		if vReg[(opcode&0x0F00)>>8] == vReg[(opcode&0x00F0)>>4] {
 			pc += 4
+		} else {
+			pc += 2
 		}
 	case 0x6000:
 		fmt.Println("Sets VX to NN")
@@ -192,6 +198,8 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 		fmt.Println("Skips the next instruction if VX doesn't equal VY. (Usually the next instruction is a jump to skip a code block)")
 		if vReg[(opcode&0x0F00)>>8] != vReg[(opcode&0x00F0)>>4] {
 			pc += 4
+		} else {
+			pc += 2
 		}
 	case 0xA000:
 		fmt.Println("Sets I to the address NNN")
