@@ -30,7 +30,7 @@ func main() {
 		// Program Counter (index to program in ROM)
 		pc uint16
 		// Graphics (display)
-		// gfx [64 * 32]uint8
+		screen [64 * 32]uint8
 	)
 
 	chip8_fontset := []uint8{
@@ -66,7 +66,7 @@ func main() {
 		opcode := fetchOpcode(memory, pc)
 
 		// Decode
-		decodeOpcode(opcode, stack, pc, sp, vReg, iReg, delayTimer, soundTimer)
+		decodeOpcode(opcode, stack, pc, sp, vReg, iReg, delayTimer, soundTimer, memory, screen)
 
 		// Execute
 
@@ -84,7 +84,7 @@ func fetchOpcode(memory [4096]uint8, pc uint16) uint16 {
 	return opcode
 }
 
-func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [16]uint8, iReg uint16, delayTimer uint8, soundTimer uint8) {
+func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [16]uint8, iReg uint16, delayTimer uint8, soundTimer uint8, memory [4096]uint8, screen [64 * 32]uint8) {
 
 	// Zero opcodes
 	switch opcode {
@@ -217,6 +217,21 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 		pc += 2
 	case 0xD000:
 		fmt.Println("Draws a sprite at coordinate (VX, VY)...")
+		var yline uint16
+		N := (opcode & 0x000F)
+		X := (opcode & 0x0F00) >> 8
+		Y := (opcode & 0x00F0) >> 4
+		for yline = 0; yline < N; yline++ {
+			data := memory[iReg+yline]               // this retreives the byte for a give line of pixels
+			for xpix := uint8(0); xpix < 8; xpix++ { // each bit in data
+				if (data & (0x80 >> xpix)) != 0 {
+					if screen[vReg[X]+(vReg[Y]*64)] == 1 {
+						vReg[0xF] = 1 //there has been a collision
+					}
+					screen[vReg[X]+(vReg[Y]*64)] ^= 1 //note: coordinate registers from opcode
+				}
+			}
+		}
 
 	// E opcodes
 	case 0xE000:
