@@ -135,15 +135,19 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 		case 0x0000:
 			fmt.Println("Sets VX to the value of VY")
 			vReg[(opcode&0x0F00)>>8] = vReg[(opcode&0x00F0)>>4]
+			pc += 2
 		case 0x0001:
 			fmt.Println("Sets VX to VX or VY. (Bitwise OR operation)")
 			vReg[(opcode&0x0F00)>>8] = vReg[(opcode&0x0F00)>>8] | vReg[(opcode&0x00F0)>>4]
+			pc += 2
 		case 0x0002:
 			fmt.Println("Sets VX to VX and VY. (Bitwise AND operation)")
 			vReg[(opcode&0x0F00)>>8] = vReg[(opcode&0x0F00)>>8] & vReg[(opcode&0x00F0)>>4]
+			pc += 2
 		case 0x0003:
 			fmt.Println("Sets VX to VX xor VY.")
 			vReg[(opcode&0x0F00)>>8] = vReg[(opcode&0x0F00)>>8] ^ vReg[(opcode&0x00F0)>>4]
+			pc += 2
 		case 0x0004:
 			fmt.Println("Adds VX += VY. VF is set to 1 when there's a carry, and to 0 when there isn't.")
 			if vReg[(opcode&0x00F0)>>4] > (0xFF - vReg[(opcode&0x0F00)>>8]) {
@@ -166,6 +170,7 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 			fmt.Println("Shifts VY right by one and stores the result to VX (VY remains unchanged). VF is set to the value of the least significant bit of VY before the shift.[2]")
 			vReg[(opcode&0x0F00)>>4] = vReg[(opcode&0x00F0)>>4] >> 1
 			vReg[0xF] = vReg[(opcode&0x0F00)>>8] & 1 // Capture LSB of Vy
+			pc += 2
 		case 0x0007:
 			fmt.Println("Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't. ")
 			if vReg[(opcode&0x0F00)>>4] > (0xFF - vReg[(opcode&0x00F0)>>4]) {
@@ -174,10 +179,12 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 				vReg[(opcode&0x00F0)>>4] -= vReg[(opcode&0x0F00)>>8]
 				vReg[0xF] = 1
 			}
+			pc += 2
 		case 0x000E:
 			fmt.Println("Shifts VY left by one and copies the result to VX. VF is set to the value of the most significant bit of VY before the shift")
-			vReg[(opcode&0x0F00)>>4] = vReg[(opcode&0x00F0)>>4] << 1
+			vReg[(opcode&0x0F00)>>8] = vReg[(opcode&0x00F0)>>4] << 1
 			vReg[0xF] = vReg[(opcode&0x00F0)>>4] & 128 // Capture MSB of Vy
+			pc += 2
 		}
 
 		// 9-D opcodes
@@ -186,10 +193,10 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 		if vReg[(opcode&0x0F00)>>8] != vReg[(opcode&0x00F0)>>4] {
 			pc += 4
 		}
-
 	case 0xA000:
 		fmt.Println("Sets I to the address NNN")
 		iReg = opcode & 0x0FFF
+		pc += 2
 	case 0xB000:
 		fmt.Println("Jumps to the address NNN plus V0")
 		pc = (opcode & 0x0FFF) + uint16(vReg[0x0])
@@ -197,6 +204,7 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 		fmt.Println("Sets VX to the result of a bitwise AND operation on a random number (Typically: 0 to 255) and NN")
 		rand.Seed(time.Now().UnixNano())
 		vReg[(opcode&0x0F00)>>8] = uint8(uint16(rand.Intn(256)) & ((opcode & 0x00FF) >> 8))
+		pc += 2
 	case 0xD000:
 		fmt.Println("Draws a sprite at coordinate (VX, VY)...")
 
@@ -215,20 +223,24 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 		case 0x0007:
 			fmt.Println("Sets VX to the value of the delay timer")
 			vReg[(opcode&0x0F00)>>8] = delayTimer
+			pc += 2
 		case 0x000A:
 			fmt.Println("A key press is awaited, and then stored in VX. (Blocking Operation. All instruction halted until next key event)")
 		case 0x0015:
 			fmt.Println("Sets the delay timer to VX")
 			delayTimer = vReg[(opcode&0x0F00)>>8]
+			pc += 2
 		case 0x0018:
 			fmt.Println("Sets the sound timer to VX")
 			soundTimer = vReg[(opcode&0x0F00)>>8]
+			pc += 2
 		case 0x001E:
 			fmt.Println("Adds VX to I.")
 			iReg += uint16(vReg[(opcode&0x0F00)>>8])
 			if iReg+uint16(vReg[(opcode&0x0F00)>>8]) > 255 {
 				vReg[0xF] = 1 // Overflow
 			}
+			pc += 2
 		case 0x0029:
 			fmt.Println("Sets I to the location of the sprite for the character in VX. Characters 0-F (in hexadecimal) are represented by a 4x5 font")
 		case 0x0033:
