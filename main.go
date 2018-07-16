@@ -269,7 +269,16 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 		case 0x0029:
 			fmt.Println("Sets I to the location of the sprite for the character in VX. Characters 0-F (in hexadecimal) are represented by a 4x5 font")
 		case 0x0033:
-			fmt.Println("Something about BCD, TL;DR")
+			fmt.Println("Store the BCD representation of VX in memory[iReg], memory[iReg+1], memory[iReg+2]")
+			// v := 123
+			// hundreds := v / 100
+			// tens := (v - (hundreds * 100)) / 10
+			// ones := v % 10
+			memory[iReg] = vReg[(opcode&0x0F00)>>8] / 100                     // Hundreds
+			memory[iReg+1] = vReg[(opcode&0x0F00)>>8] - (memory[iReg]*100)/10 // Tens
+			memory[iReg+2] = vReg[(opcode&0x0F00)>>8] % 10                    // Ones
+			pc += 2
+
 		case 0x0055:
 			fmt.Println("Stores V0 to VX (including VX) in memory starting at address I. The offset from I is increased by 1 for each value written, but I itself is left unmodified")
 		case 0x0065:
