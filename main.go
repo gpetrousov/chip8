@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math/rand"
+	"os"
 	"time"
 )
 
@@ -24,7 +26,7 @@ func main() {
 		// Sound timer
 		soundTimer uint8
 		// Opcode (contains the actual code)
-		opcode uint16
+		// opcode uint16
 		// Program Counter (index to program in ROM)
 		pc uint16
 		// Graphics (display)
@@ -265,6 +267,18 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 
 func clearScreen() {
 
+}
+
+// Load ROM into memory
+func loadROMIntoMemory(memory []uint8) {
+	bs, err := ioutil.ReadFile(os.Args[1])
+	if err != nil {
+		fmt.Println("ERROR:", err)
+		os.Exit(1)
+	}
+	for romI, memI := 0, 512; romI < len(bs); memI, romI = memI+1, romI+1 {
+		memory[memI] = bs[romI]
+	}
 }
 
 // Update timers
