@@ -286,6 +286,10 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 			}
 		case 0x0065:
 			fmt.Println("Fills V0 to VX (including VX) with values from memory starting at address I")
+			for i := uint16(0); i < ((opcode & 0x0F00) >> 8); i += 1 {
+				vReg[i] = memory[iReg+i]
+			}
+			pc += 2
 		}
 	default:
 		fmt.Println("Unknown opcode:", opcode)
