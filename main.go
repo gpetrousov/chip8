@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"os/exec"
 	"time"
 )
 
@@ -73,6 +74,17 @@ func main() {
 		// Store
 
 		// Update timers
+
+		// Key pressing routine, non-blocking
+		exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run() // Disable input buffering
+		exec.Command("stty", "-F", "/dev/tty", "-echo").Run()              // Do not display entered characters on the screen
+		var b []byte = make([]byte, 1)
+		go func() {
+			for {
+				os.Stdin.Read(b)
+				fmt.Println("I got the byte", b, "("+string(b)+")")
+			}
+		}()
 
 	}
 
