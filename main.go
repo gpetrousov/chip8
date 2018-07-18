@@ -130,7 +130,9 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 	switch opcode {
 	case 0x00E0:
 		fmt.Println("Clear screen")
-		clearScreen()
+		for i, _ := range screen {
+			screen[i] = 0
+		}
 	case 0x00EE:
 		fmt.Println("Return from a subroutine")
 		pc = stack[sp]
@@ -344,10 +346,6 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 	default:
 		fmt.Println("Unknown opcode:", opcode)
 	}
-}
-
-func clearScreen() {
-
 }
 
 // Load ROM into memory
