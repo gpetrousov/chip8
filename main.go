@@ -102,8 +102,8 @@ func main() {
 
 	// MAin loop
 	for {
-		// Fetch
-		opcode := fetchOpcode(memory, pc)
+		// Fetch opcode
+		opcode := lib.FetchOpcode(memory, pc)
 
 		// Decode
 		decodeOpcode(opcode, stack, pc, sp, vReg, iReg, delayTimer, soundTimer, memory, screen, keys)
@@ -117,12 +117,6 @@ func main() {
 		debounceKeys(keys)
 	}
 
-}
-
-// Take memory and PC and return next opcode to execute
-func fetchOpcode(memory [4096]uint8, pc uint16) uint16 {
-	opcode := uint16(memory[pc]<<8 | memory[pc+1])
-	return opcode
 }
 
 // Decode and execute opcode, increase PC
