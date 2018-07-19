@@ -1,8 +1,8 @@
 package main
 
 import (
+	"chip8/lib"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"os/exec"
@@ -58,14 +58,12 @@ func main() {
 		0x1: 0,
 		0x2: 0,
 		0x3: 0,
-
 		0x4: 0,
 		0x5: 0,
 		0x6: 0,
 		0x7: 0,
 		0x8: 0,
 		0x9: 0,
-
 		0xA: 0,
 		0xB: 0,
 		0xC: 0,
@@ -82,12 +80,16 @@ func main() {
 		memory[i] = v
 	}
 
+	// Load ROM
+	memory = lib.LoadROMIntoMemory(memory)
+
 	// Darwin instructions
 	exec.Command("stty", "-f", "/dev/tty", "cbreak", "min", "1").Run() // Disable input buffering
 	exec.Command("stty", "-f", "/dev/tty", "-echo").Run()              // Do not display entered characters on the screen
 	// Linux instructions
 	exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run() // Disable input buffering
 	exec.Command("stty", "-F", "/dev/tty", "-echo").Run()              // Do not display entered characters on the screen
+
 	// Routine to read from keyboard
 	var b []byte = make([]byte, 1)
 	go func() {
@@ -345,18 +347,6 @@ func decodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [1
 		}
 	default:
 		fmt.Println("Unknown opcode:", opcode)
-	}
-}
-
-// Load ROM into memory
-func loadROMIntoMemory(memory []uint8) {
-	bs, err := ioutil.ReadFile(os.Args[1])
-	if err != nil {
-		fmt.Println("ERROR:", err)
-		os.Exit(1)
-	}
-	for romI, memI := 0, 512; romI < len(bs); memI, romI = memI+1, romI+1 {
-		memory[memI] = bs[romI]
 	}
 }
 
