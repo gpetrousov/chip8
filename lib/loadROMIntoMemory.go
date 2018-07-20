@@ -13,6 +13,7 @@ func LoadROMIntoMemory(m [4096]uint8) [4096]uint8 {
 		fmt.Println("ERROR:", err)
 		os.Exit(1)
 	}
+	fmt.Println("ROM len:", len(bs))
 	if len(bs) > 512 {
 		fmt.Println("ERROR: Length ROM is greater that available memory.")
 		os.Exit(2)
