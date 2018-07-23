@@ -81,7 +81,7 @@ func main() {
 	}
 
 	// Load ROM
-	memory = lib.LoadROMIntoMemory(memory)
+	memory, _ = lib.LoadROMIntoMemory(memory)
 
 	// Darwin instructions
 	exec.Command("stty", "-f", "/dev/tty", "cbreak", "min", "1").Run() // Disable input buffering

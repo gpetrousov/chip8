@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-func DecodeAndExecuteOpcode(opcode uint16) {
+func DecodeAndExecuteOpcode(opcode uint16, pc uint16) {
 
 	// Zero opcodes
 	switch opcode {
@@ -98,7 +98,7 @@ func DecodeAndExecuteOpcode(opcode uint16) {
 		case 0x0065:
 			fmt.Println("Fills V0 to VX (including VX) with values from memory starting at address I")
 		default:
-			fmt.Println("Unknown opcode:", opcode)
+			fmt.Println("Unknown opcode:", opcode, "at position:", pc)
 		}
 	}
 }

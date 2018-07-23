@@ -7,7 +7,7 @@ import (
 )
 
 // Load ROM into memory
-func LoadROMIntoMemory(m [4096]uint8) [4096]uint8 {
+func LoadROMIntoMemory(m [4096]uint8) ([4096]uint8, uint16) {
 	bs, err := ioutil.ReadFile(os.Args[1])
 	if err != nil {
 		fmt.Println("ERROR:", err)
@@ -21,5 +21,5 @@ func LoadROMIntoMemory(m [4096]uint8) [4096]uint8 {
 	for romI, memI := 0, 512; romI < len(bs); memI, romI = memI+1, romI+1 {
 		m[memI] = bs[romI]
 	}
-	return m
+	return m, uint16(len(bs))
 }
