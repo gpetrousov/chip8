@@ -7,7 +7,7 @@ import (
 )
 
 // Decode and execute opcode, increase PC
-func DecodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [16]uint8, iReg uint16, delayTimer uint8, soundTimer uint8, memory [4096]uint8, screen [64 * 32]uint8, keys map[uint8]uint8) {
+func DecodeOpcode(opcode uint16, stack [16]uint16, pc uint16, sp uint16, vReg [16]uint8, iReg uint16, delayTimer uint8, soundTimer uint8, memory []uint8, screen [64 * 32]uint8, keys map[uint8]uint8) {
 
 	// Zero opcodes
 	switch opcode {

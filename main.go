@@ -10,8 +10,6 @@ import (
 func main() {
 
 	var (
-		// Memory
-		memory [4096]uint8
 		// Registers
 		vReg [16]uint8
 		// Address Register
@@ -31,6 +29,9 @@ func main() {
 		// Graphics (display)
 		screen [64 * 32]uint8
 	)
+
+	// Memory
+	var memory []uint8 = make([]uint8, 4096)
 
 	chip8_fontset := []uint8{
 		0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -79,7 +80,7 @@ func main() {
 	}
 
 	// Load ROM
-	memory, _ = lib.LoadROMIntoMemory(memory)
+	_ = lib.LoadROMIntoMemory(memory)
 
 	// Darwin instructions
 	exec.Command("stty", "-f", "/dev/tty", "cbreak", "min", "1").Run() // Disable input buffering
