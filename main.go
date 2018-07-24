@@ -10,12 +10,16 @@ import (
 func main() {
 
 	var (
+		// Memory
+		memory []uint8 = make([]uint8, 4096)
 		// Registers
-		vReg [16]uint8
+		vReg []uint8 = make([]uint8, 16)
+		// Stack
+		stack []uint16 = make([]uint16, 16)
+		// Graphics (display)
+		screen []uint8 = make([]uint8, 64*32)
 		// Address Register
 		iReg uint16
-		// Stack
-		stack [16]uint16
 		// Stack pointer
 		sp uint16
 		// Delay timer
@@ -23,15 +27,12 @@ func main() {
 		// Sound timer
 		soundTimer uint8
 		// Opcode (contains the actual code)
-		// opcode uint16
+		opcode uint16
 		// Program Counter (index to program in ROM)
 		pc uint16
-		// Graphics (display)
-		screen [64 * 32]uint8
+		// Draw screen flag
+		drawScreen bool = false
 	)
-
-	// Memory
-	var memory []uint8 = make([]uint8, 4096)
 
 	chip8_fontset := []uint8{
 		0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -102,14 +103,17 @@ func main() {
 	// MAin loop
 	for {
 		// Fetch opcode
-		opcode := lib.FetchOpcode(memory, pc)
+		opcode = lib.FetchOpcode(memory, pc)
 
 		// Decode
-		lib.DecodeOpcode(opcode, stack, pc, sp, vReg, iReg, delayTimer, soundTimer, memory, screen, keys)
+		lib.DecodeOpcode(opcode, stack, &pc, &sp, vReg, &iReg, &delayTimer, &soundTimer, memory, screen, keys, &drawScreen)
 
 		// Execute
 
-		// Store
+		// Draw sprite
+		if drawScreen {
+			printScreen(screen, &drawScreen)
+		}
 
 		// Update timers
 
@@ -118,17 +122,28 @@ func main() {
 
 }
 
-// Update timers
-func updateTimers(soundTimer uint8, delayTimer uint8) {
-	if delayTimer > 0 {
-		delayTimer -= 1
+// Print screen
+func printScreen(screen []uint8, drawScreen *bool) {
+	for y := 0; y < 64*32; y += 64 {
+		for x := 0; x < 64; x += 1 {
+			fmt.Print(screen[x+y])
+		}
+		fmt.Println()
 	}
-	if soundTimer > 0 {
-		if soundTimer == 1 {
+	(*drawScreen) = false
+}
+
+// Update timers
+func updateTimers(soundTimer *uint8, delayTimer *uint8) {
+	if *delayTimer > 0 {
+		(*delayTimer) -= 1
+	}
+	if *soundTimer > 0 {
+		if *soundTimer == 1 {
 			println("BEEP!")
 		}
 	}
-	soundTimer -= 1
+	(*soundTimer) -= 1
 }
 
 // Bounce key by updating it's state (key pressed)
